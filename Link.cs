@@ -22,7 +22,9 @@ namespace ResourcesLinks
         {
             if (_loaded)
                 return _cachedObject;
-            return _cachedObject = Resources.Load<T>(Path);
+            _cachedObject = Resources.Load<T>(Path);
+            _loaded = true;
+            return _cachedObject;
         }
     }
 }
