@@ -7,6 +7,7 @@ namespace ResourcesLinks
     [CustomPropertyDrawer(typeof(ExampleLink))]
     public class ExampleLinkDrawer : LinkPropertyDrawer<GameObject>
     {
-        public override string ResourcesFolderName => "Prefabs";
+        public override string ResourcesFolderName => "Buildings";
+
     }
 }

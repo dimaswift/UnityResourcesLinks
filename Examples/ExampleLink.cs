@@ -4,5 +4,8 @@ using System;
 namespace ResourcesLinks.Examples
 {
     [Serializable]
-    public class ExampleLink : GenericLink<GameObject> { }
+    public class ExampleLink : GenericLink<GameObject>
+    {
+
+    }
 }

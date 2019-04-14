@@ -1,13 +1,15 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System.IO;
+using System.Collections.Generic;
 
 namespace ResourcesLinks
 {
-
     [CustomEditor(typeof(ResourceLinkSettings))]
     public class ResourceLinkSettingsEditor : Editor
     {
+
+
         public override void OnInspectorGUI()
         {
             var settings = target as ResourceLinkSettings;
@@ -44,6 +46,8 @@ namespace ResourcesLinks
             EditorUtility.SetDirty(settings);
         }
     }
+
+
 
     public class ResourceLinkSettings : ScriptableObject
     {
@@ -130,6 +134,7 @@ public class {0}LinkDrawer : LinkPropertyDrawer<{0}>
         {
             ResourceLinkPromptWindow.ShowWindow();
         }
+
 
         public static void CreateWithSettings()
         {
