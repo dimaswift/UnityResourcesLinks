@@ -9,7 +9,7 @@ namespace ResourcesLinks
         [SerializeField]
         protected string Path;
 
-        public bool IsValid => Resources.Load(Path) != null;
+        public virtual bool IsValid => Resources.Load(Path) != null;
     }
 
     [Serializable]
@@ -17,6 +17,8 @@ namespace ResourcesLinks
     {
         [NonSerialized]
         private T _cachedObject;
+
+        public override bool IsValid => Resources.Load<T>(Path) != null;
 
         public T Value 
         {

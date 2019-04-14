@@ -10,12 +10,40 @@ namespace ResourcesLinks
         private readonly List<string> files = new List<string>();
         private readonly List<string> paths = new List<string>();
 
-        public virtual string ResourcesFolderName => typeof(T).Name + "s";
+        private static readonly List<string> stringBuffer = new List<string>(100);
 
-        private void GetAssetsPaths(string folder, List<string> files, List<string> paths)
+        public abstract string ResourcesFolderName { get; }
+
+        private void GetResourcesDirectories(List<string> directories)
         {
-            var resourcesFolder = "/Resources";
-            var rootFolder = Application.dataPath + resourcesFolder + "/" + folder;
+            var root = Application.dataPath;
+
+            var dirs = Directory.GetDirectories(root);
+
+            foreach (string dir in dirs)
+            {
+                LoadSubDirs(dir, directories);
+            }
+        }
+
+        private void LoadSubDirs(string dir, List<string> directories)
+        {
+            directories.Add(Path.GetFullPath(dir));
+            var subDirs = Directory.GetDirectories(dir);
+            foreach (string subDir in subDirs)
+            {
+                LoadSubDirs(subDir, directories);
+            }
+        }
+
+        private void GetAssetsPaths(string folder, List<string> files, List<string> paths, string resourcesFolder)
+        {
+
+      
+            var rootFolder = resourcesFolder + "/" + folder;
+
+          
+
             if (!Directory.Exists(rootFolder))
                 return;
             var assets = Directory.GetFiles(rootFolder);
@@ -43,8 +71,11 @@ namespace ResourcesLinks
             foreach (var sub in AssetDatabase.GetSubFolders(f))
             {
                 var subName = Path.GetFileName(sub);
-                GetAssetsPaths(folder + "/" + subName, files, paths);
+                GetAssetsPaths(folder + "/" + subName, files, paths, resourcesFolder);
             }
+            
+
+           
         }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -62,7 +93,17 @@ namespace ResourcesLinks
             paths.Clear();
             files.Clear();
 
-            GetAssetsPaths(ResourcesFolderName, files, paths);
+            stringBuffer.Clear();
+
+            GetResourcesDirectories(stringBuffer);
+
+            for (int i = stringBuffer.Count - 1; i >= 0; i--)
+            {
+                if (stringBuffer[i].EndsWith("Resources"))
+                {
+                    GetAssetsPaths(ResourcesFolderName, files, paths, stringBuffer[i]);
+                }
+            }
 
             for (int i = 0; i < paths.Count; i++)
             {
@@ -70,31 +111,53 @@ namespace ResourcesLinks
             }
 
             var currentPath = property.FindPropertyRelative("Path");
-            if (files.Count > 0)
+          
+            var currentIndex = paths.FindIndex(f => ResourcesFolderName + "/" + f == currentPath.stringValue);
+            var buttonRect = new Rect(position.x + position.width - 70, position.y, 70, position.height);
+            if (currentIndex < 0)
             {
-                var currentIndex = paths.FindIndex(f => ResourcesFolderName + "/" + f == currentPath.stringValue);
-
-                if (currentIndex < 0)
-                    currentIndex = 0;
-
-                var selectedIndex = EditorGUI.Popup(rect, currentIndex, paths.ToArray());
-                currentPath.stringValue = ResourcesFolderName + "/" + paths[selectedIndex];
-                var buttonRect = new Rect(position.x + position.width - 70, position.y, 70, position.height);
-                var obj = Resources.Load(currentPath.stringValue);
-                if (obj != null)
+                if (ResourceLinkSettings.Instance.SaveLinksToDeletedFiles)
                 {
-                    if (GUI.Button(buttonRect, "select"))
-                        Selection.activeObject = obj;
+                    if (paths.Count > 0)
+                    {
+                        EditorGUI.HelpBox(rect, "object deleted", MessageType.Error);
+                        if (GUI.Button(buttonRect, "reset"))
+                        {
+                            currentIndex = 0;
+                            if (paths.Count == 0)
+                                return;
+                        }
+                        else
+                        {
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        EditorGUI.HelpBox(rect, "folder is empty", MessageType.Error);
+                        return;
+                    }
                 }
                 else
                 {
-                    EditorGUI.HelpBox(rect, "object not found", MessageType.Error);
+                    currentIndex = 0;
                 }
+            }
+
+            var selectedIndex = EditorGUI.Popup(rect, currentIndex, paths.ToArray());
+            currentPath.stringValue = ResourcesFolderName + "/" + paths[selectedIndex];
+             
+            var obj = Resources.Load(currentPath.stringValue);
+            if (obj != null)
+            {
+                if (GUI.Button(buttonRect, "select"))
+                    Selection.activeObject = obj;
             }
             else
             {
-                EditorGUI.HelpBox(rect, "empty", MessageType.Warning);
+                EditorGUI.HelpBox(rect, "object not found", MessageType.Error);
             }
+            
 
             EditorGUI.indentLevel = indent;
 

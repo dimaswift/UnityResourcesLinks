@@ -1,7 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
+using System.IO;
 
 namespace ResourcesLinks
 {
@@ -12,9 +11,12 @@ namespace ResourcesLinks
         public override void OnInspectorGUI()
         {
             var settings = target as ResourceLinkSettings;
+            Undo.RecordObject(settings, "ResourceLinkSettings");
             var rect = EditorGUILayout.GetControlRect(false, 22);
-            GUI.Label(new Rect(rect.x, rect.y, rect.width - 100, rect.height), settings.LinkScriptsFolder);
-            if (GUI.Button(new Rect(rect.x + rect.width - 100, rect.y, 100, rect.height), "Save"))
+            
+            GUI.Label(new Rect(rect.x, rect.y, rect.width - 100, rect.height), "Link Scripts Folder: ", EditorStyles.boldLabel);
+            GUI.Label(new Rect(rect.x + 150, rect.y, rect.width - 260, rect.height), settings.LinkScriptsFolder, EditorStyles.helpBox);
+            if (GUI.Button(new Rect(rect.x + rect.width - 100, rect.y, 100, rect.height), "Change"))
             {
                 var newPath = EditorUtility.OpenFolderPanel("Link Scripts Folder", Application.dataPath + settings.LinkScriptsFolder, "");
                 if (string.IsNullOrEmpty(newPath))
@@ -24,8 +26,9 @@ namespace ResourcesLinks
                 EditorUtility.SetDirty(settings);
             }
             rect.y += 30;
-            GUI.Label(new Rect(rect.x, rect.y, rect.width - 100, rect.height), settings.LinkScriptsEditorFolder);
-            if (GUI.Button(new Rect(rect.x + rect.width - 100, rect.y, 100, rect.height), "Save"))
+            GUI.Label(new Rect(rect.x, rect.y, rect.width - 100, rect.height), "Link Editor Folder: ", EditorStyles.boldLabel);
+            GUI.Label(new Rect(rect.x + 150, rect.y, rect.width - 260, rect.height), settings.LinkScriptsEditorFolder, EditorStyles.helpBox);
+            if (GUI.Button(new Rect(rect.x + rect.width - 100, rect.y, 100, rect.height), "Change"))
             {
                 var newPath = EditorUtility.OpenFolderPanel("Link Scripts Editor Folder", Application.dataPath + settings.LinkScriptsEditorFolder, "");
                 if (string.IsNullOrEmpty(newPath))
@@ -35,6 +38,9 @@ namespace ResourcesLinks
                 EditorUtility.SetDirty(settings);
             }
             rect.y += 30;
+
+            settings.SaveLinksToDeletedFiles = GUI.Toggle(rect, settings.SaveLinksToDeletedFiles, "   Save Links To Deleted Files");
+
             EditorUtility.SetDirty(settings);
         }
     }
@@ -43,6 +49,7 @@ namespace ResourcesLinks
     {
         public string LinkScriptsFolder = "Scripts";
         public string LinkScriptsEditorFolder = "Scripts/Editor";
+        public bool SaveLinksToDeletedFiles;
         public string Namespace;
         public string LinkClass;
 
@@ -63,7 +70,6 @@ namespace ResourcesLinks
                         AssetDatabase.CreateAsset(_instance, path);
                         AssetDatabase.Refresh();
                     }
-                    _instance.hideFlags = HideFlags.HideInHierarchy;
                 }
                 return _instance;
             }
@@ -102,7 +108,7 @@ namespace {1}
     [CustomPropertyDrawer(typeof({0}Link))]
     public class {0}LinkDrawer : LinkPropertyDrawer<{0}>
     {{
-        
+        public override string ResourcesFolderName => ""{0}s"";
     }}
 }}
 ";
@@ -114,7 +120,7 @@ using ResourcesLinks;
 [CustomPropertyDrawer(typeof({0}Link))]
 public class {0}LinkDrawer : LinkPropertyDrawer<{0}>
 {{
-        
+    public override string ResourcesFolderName => ""{0}s"";
 }}
 
 ";
@@ -134,11 +140,22 @@ public class {0}LinkDrawer : LinkPropertyDrawer<{0}>
             template = string.Format(template, settings.LinkClass, settings.Namespace);
             editorTemplate = string.Format(editorTemplate, settings.LinkClass, settings.Namespace);
 
-            var path = Application.dataPath.Remove(Application.dataPath.Length - 6, 6);
+            var path = Application.dataPath + "/";
 
-            System.IO.File.WriteAllText(path + settings.LinkScriptsFolder + "/" + settings.LinkClass + "Link" + ".cs", template);
+            if(!Directory.Exists(path + settings.LinkScriptsFolder))
+            {
+              
+                Directory.CreateDirectory(path + settings.LinkScriptsFolder);
+            }
 
-            System.IO.File.WriteAllText(path + settings.LinkScriptsEditorFolder + "/" + settings.LinkClass + "LinkDrawer" + ".cs", editorTemplate);
+            if (!Directory.Exists(path + settings.LinkScriptsEditorFolder))
+            {
+                Directory.CreateDirectory(path + settings.LinkScriptsEditorFolder);
+            }
+
+            File.WriteAllText(path + settings.LinkScriptsFolder + "/" + settings.LinkClass + "Link" + ".cs", template);
+
+            File.WriteAllText(path + settings.LinkScriptsEditorFolder + "/" + settings.LinkClass + "LinkDrawer" + ".cs", editorTemplate);
 
             AssetDatabase.Refresh();
 
