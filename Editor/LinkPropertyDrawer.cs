@@ -66,8 +66,8 @@ namespace ResourcesLinks
                 files.Add(assetPath);
                 paths.Add(folder + "/" + assetPath);
             }
-            var f = "Assets" + resourcesFolder + "/" + folder;
-
+            var f = "Assets" + resourcesFolder.Remove(0, Application.dataPath.Length) + "/" + folder;
+            Debug.Log(f);
             foreach (var sub in AssetDatabase.GetSubFolders(f))
             {
                 var subName = Path.GetFileName(sub);
