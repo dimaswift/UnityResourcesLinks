@@ -21,7 +21,7 @@ namespace ResourcesLinks
                 var newPath = EditorUtility.OpenFolderPanel("Link Scripts Folder", Application.dataPath + settings.LinkScriptsFolder, "");
                 if (string.IsNullOrEmpty(newPath))
                     return;
-                newPath = newPath.Remove(0, Application.dataPath.Length - 6);
+                newPath = newPath.Remove(0, Application.dataPath.Length + 1);
                 settings.LinkScriptsFolder = newPath;
                 EditorUtility.SetDirty(settings);
             }
@@ -33,7 +33,7 @@ namespace ResourcesLinks
                 var newPath = EditorUtility.OpenFolderPanel("Link Scripts Editor Folder", Application.dataPath + settings.LinkScriptsEditorFolder, "");
                 if (string.IsNullOrEmpty(newPath))
                     return;
-                newPath = newPath.Remove(0, Application.dataPath.Length - 6);
+                newPath = newPath.Remove(0, Application.dataPath.Length + 1);
                 settings.LinkScriptsEditorFolder = newPath;
                 EditorUtility.SetDirty(settings);
             }
