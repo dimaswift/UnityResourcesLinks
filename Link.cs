@@ -15,16 +15,18 @@ namespace ResourcesLinks
     [Serializable]
     public abstract class GenericLink<T> : Link where T : UnityEngine.Object
     {
+        [NonSerialized]
         private T _cachedObject;
-        private bool _loaded;
 
-        public T Load() 
+        public T Value 
         {
-            if (_loaded)
+            get
+            {
+                if (_cachedObject != null)
+                    return _cachedObject;
+                _cachedObject = Resources.Load<T>(Path);
                 return _cachedObject;
-            _cachedObject = Resources.Load<T>(Path);
-            _loaded = true;
-            return _cachedObject;
+            }
         }
     }
 }
