@@ -6,7 +6,8 @@ namespace ResourcesLinks
     [Serializable]
     public abstract class Link
     {
-        public string Path;
+        [SerializeField]
+        protected string Path;
 
         public bool IsValid => Resources.Load(Path) != null;
     }
@@ -14,9 +15,14 @@ namespace ResourcesLinks
     [Serializable]
     public abstract class GenericLink<T> : Link where T : UnityEngine.Object
     {
+        private T _cachedObject;
+        private bool _loaded;
+
         public T Load() 
         {
-            return Resources.Load<T>(Path);
+            if (_loaded)
+                return _cachedObject;
+            return _cachedObject = Resources.Load<T>(Path);
         }
     }
 }

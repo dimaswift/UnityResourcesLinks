@@ -2,12 +2,11 @@
 using UnityEditor;
 using ResourcesLinks.Examples;
 
-namespace ResourcesLinks.Editor
+namespace ResourcesLinks
 {
     [CustomPropertyDrawer(typeof(LinkExample))]
     public class ExampleLinkDrawer : LinkPropertyDrawer<Sprite>
     {
-        public override string ResourcesFolderName => "Sprites";
+        
     }
-
 }

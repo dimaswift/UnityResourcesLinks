@@ -3,14 +3,14 @@ using UnityEngine;
 using UnityEditor;
 using System.IO;
 
-namespace ResourcesLinks.Editor
+namespace ResourcesLinks
 {
     public abstract class LinkPropertyDrawer<T> : PropertyDrawer where T : Object
     {
         private readonly List<string> files = new List<string>();
         private readonly List<string> paths = new List<string>();
 
-        public abstract string ResourcesFolderName { get; }
+        public virtual string ResourcesFolderName => typeof(T).Name + "s";
 
         private void GetAssetsPaths(string folder, List<string> files, List<string> paths)
         {
@@ -49,7 +49,7 @@ namespace ResourcesLinks.Editor
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            EditorGUI.BeginProperty(position, label, property);
+            EditorGUI.BeginProperty(position, new GUIContent(), property);
 
             position = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
 
@@ -57,7 +57,7 @@ namespace ResourcesLinks.Editor
 
             EditorGUI.indentLevel = 0;
 
-            var rect = new Rect(position.x, position.y, position.width - 50, position.height);
+            var rect = new Rect(position.x, position.y, position.width - 70, position.height);
 
             paths.Clear();
             files.Clear();
@@ -76,12 +76,19 @@ namespace ResourcesLinks.Editor
 
                 if (currentIndex < 0)
                     currentIndex = 0;
+
                 var selectedIndex = EditorGUI.Popup(rect, currentIndex, paths.ToArray());
                 currentPath.stringValue = ResourcesFolderName + "/" + paths[selectedIndex];
-                var buttonRect = new Rect(position.x + position.width - 50, position.y, 50, position.height);
-                if (GUI.Button(buttonRect, "show"))
+                var buttonRect = new Rect(position.x + position.width - 70, position.y, 70, position.height);
+                var obj = Resources.Load(currentPath.stringValue);
+                if (obj != null)
                 {
-                    Selection.activeObject = Resources.Load(currentPath.stringValue);
+                    if (GUI.Button(buttonRect, "select"))
+                        Selection.activeObject = obj;
+                }
+                else
+                {
+                    EditorGUI.HelpBox(rect, "object not found", MessageType.Error);
                 }
             }
             else
